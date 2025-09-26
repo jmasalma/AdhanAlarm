@@ -1,44 +1,70 @@
 package islam.adhanalarm.handler;
 
-import android.content.Context;
-import android.hardware.SensorListener;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.widget.TextView;
 
-import islam.adhanalarm.view.QiblaCompassView;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
-public class CompassHandler {
+public class CompassHandler implements SensorEventListener {
 
-    private QiblaCompassView mQiblaCompass;
+    private final SensorManager mSensorManager;
+    private final Sensor mAccelerometer;
+    private final Sensor mMagnetometer;
 
-    private double mQiblaDirection;
+    private final float[] mLastAccelerometer = new float[3];
+    private final float[] mLastMagnetometer = new float[3];
+    private boolean mLastAccelerometerSet = false;
+    private boolean mLastMagnetometerSet = false;
 
-    private SensorListener orientationListener;
-    private boolean isTrackingOrientation = false;
+    private final float[] mR = new float[9];
+    private final float[] mOrientation = new float[3];
 
-    public CompassHandler(QiblaCompassView qiblaCompass, TextView bearingNorth, TextView bearingQibla) {
-        mQiblaCompass = qiblaCompass;
-        mQiblaCompass.setConstants(bearingNorth, bearingNorth.getText(), bearingQibla, bearingQibla.getText());
+    private final MutableLiveData<Float> mNorthDirection = new MutableLiveData<>();
 
-        orientationListener = new SensorListener() {
-            public void onSensorChanged(int s, float v[]) {
-                float northDirection = v[android.hardware.SensorManager.DATA_X];
-                mQiblaCompass.setDirections(northDirection, (float) mQiblaDirection);
-            }
-            public void onAccuracyChanged(int s, int a) {
-            }
-        };
+    public CompassHandler(SensorManager sensorManager) {
+        mSensorManager = sensorManager;
+        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
     }
 
-    public void update(double qiblaDirection) {
-        mQiblaDirection = qiblaDirection;
+    public LiveData<Float> getNorthDirection() {
+        return mNorthDirection;
     }
 
-    public void startTrackingOrientation(Context context) {
-        if(!isTrackingOrientation) isTrackingOrientation = ((SensorManager) context.getSystemService(Context.SENSOR_SERVICE)).registerListener(orientationListener, android.hardware.SensorManager.SENSOR_ORIENTATION);
+    public void startTracking() {
+        if (mAccelerometer != null && mMagnetometer != null) {
+            mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_GAME);
+            mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_GAME);
+        }
     }
-    public void stopTrackingOrientation(Context context) {
-        if(isTrackingOrientation) ((SensorManager) context.getSystemService(Context.SENSOR_SERVICE)).unregisterListener(orientationListener);
-        isTrackingOrientation = false;
+
+    public void stopTracking() {
+        mSensorManager.unregisterListener(this);
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            System.arraycopy(event.values, 0, mLastAccelerometer, 0, event.values.length);
+            mLastAccelerometerSet = true;
+        } else if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+            System.arraycopy(event.values, 0, mLastMagnetometer, 0, event.values.length);
+            mLastMagnetometerSet = true;
+        }
+        if (mLastAccelerometerSet && mLastMagnetometerSet) {
+            SensorManager.getRotationMatrix(mR, null, mLastAccelerometer, mLastMagnetometer);
+            SensorManager.getOrientation(mR, mOrientation);
+            float azimuthInRadians = mOrientation[0];
+            float azimuthInDegrees = (float) (Math.toDegrees(azimuthInRadians) + 360) % 360;
+            mNorthDirection.postValue(azimuthInDegrees);
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        // Not used
     }
 }
