@@ -76,8 +76,8 @@ public class StartNotificationService extends JobIntentService {
                     .setSmallIcon(R.drawable.icon_notification)
                     .setContentTitle((timeIndex != CONSTANT.SUNRISE ? getString(R.string.allahu_akbar) + ": " : "") + getString(R.string.time_for) + " " + getString(CONSTANT.TIME_NAMES[timeIndex]).toLowerCase())
                     .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                    .setContentIntent(PendingIntent.getBroadcast(this, 0, new Intent(CONSTANT.ACTION_NOTIFICATION_CLICKED, null, this, HandleNotificationReceiver.class), PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_ONE_SHOT))
-                    .setDeleteIntent(PendingIntent.getBroadcast(this, 0, new Intent(CONSTANT.ACTION_NOTIFICATION_DELETED, null, this, HandleNotificationReceiver.class), PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_ONE_SHOT));
+                    .setContentIntent(PendingIntent.getBroadcast(this, 0, new Intent(CONSTANT.ACTION_NOTIFICATION_CLICKED, null, this, HandleNotificationReceiver.class), PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE))
+                    .setDeleteIntent(PendingIntent.getBroadcast(this, 0, new Intent(CONSTANT.ACTION_NOTIFICATION_DELETED, null, this, HandleNotificationReceiver.class), PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE));
 
             int ringerMode = ((AudioManager) getSystemService(AUDIO_SERVICE)).getRingerMode();
             int callState = ((TelephonyManager) getSystemService(TELEPHONY_SERVICE)).getCallState();
@@ -88,7 +88,7 @@ public class StartNotificationService extends JobIntentService {
                     if (notificationType == CONSTANT.NOTIFICATION_PLAY) {
                         resid = timeIndex == CONSTANT.FAJR ? R.raw.adhan_fajr : R.raw.adhan;
                     }
-                    builder.addAction(android.R.drawable.stat_notify_call_mute, getString(R.string.stop), PendingIntent.getBroadcast(this, 0, new Intent(CONSTANT.ACTION_NOTIFICATION_STOPPED, null, this, HandleNotificationReceiver.class), PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_ONE_SHOT));
+                    builder.addAction(android.R.drawable.stat_notify_call_mute, getString(R.string.stop), PendingIntent.getBroadcast(this, 0, new Intent(CONSTANT.ACTION_NOTIFICATION_STOPPED, null, this, HandleNotificationReceiver.class), PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE));
                     App.startMedia(resid);
                 }
             }

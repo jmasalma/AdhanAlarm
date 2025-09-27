@@ -60,12 +60,12 @@ public class StartNotificationReceiver extends WakefulBroadcastReceiver {
 
         Intent infoIntent = new Intent(context, MainActivity.class);
         infoIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        PendingIntent pendingInfoIntent = PendingIntent.getActivity(context, 0, infoIntent, 0);
+        PendingIntent pendingInfoIntent = PendingIntent.getActivity(context, 0, infoIntent, PendingIntent.FLAG_IMMUTABLE);
 
 		AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
 		long triggerAtMillis = actualTime.getTimeInMillis();
-		PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+		PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         am.setAlarmClock(new AlarmManager.AlarmClockInfo(triggerAtMillis, pendingInfoIntent), pendingIntent);
     }

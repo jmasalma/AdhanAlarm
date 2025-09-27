@@ -63,7 +63,7 @@ public class NextNotificationWidgetProvider extends AppWidgetProvider {
         final short nextTimeIndex = schedule.nextTimeIndex;
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_next_notification);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, new Intent(context, MainActivity.class), 0);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, new Intent(context, MainActivity.class), PendingIntent.FLAG_IMMUTABLE);
         views.setOnClickPendingIntent(R.id.widget_next_notification, pendingIntent);
 
         views.setTextViewText(R.id.time_name, context.getString(labels[nextTimeIndex]));

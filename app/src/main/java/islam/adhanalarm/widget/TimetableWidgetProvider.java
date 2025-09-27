@@ -65,7 +65,7 @@ public class TimetableWidgetProvider extends AppWidgetProvider {
         final ScheduleData schedule = ScheduleHandler.calculate(location, calculationMethod, roundingType, offsetMinutes);
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_timetable);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, new Intent(context, MainActivity.class), 0);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, new Intent(context, MainActivity.class), PendingIntent.FLAG_IMMUTABLE);
         views.setOnClickPendingIntent(R.id.today, pendingIntent);
 
         final boolean isRTL = context.getResources().getConfiguration().getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
