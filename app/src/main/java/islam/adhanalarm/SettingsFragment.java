@@ -33,6 +33,7 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
     ));
     SharedPreferences mSharedPreferences;
     LocationHandler mLocationHandler;
+    private Observer<Location> mLocationObserver;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -40,7 +41,7 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
         addPreferencesFromResource(R.xml.settings);
 
         mLocationHandler = new LocationHandler((LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE));
-        mLocationHandler.getLocation().observe(getActivity(), new Observer<Location>() {
+        mLocationObserver = new Observer<Location>() {
             @Override
             public void onChanged(@Nullable Location currentLocation) {
                 if (currentLocation == null) return;
@@ -49,7 +50,8 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
                         .putString("longitude", Double.toString(currentLocation.getLongitude()))
                         .apply();
             }
-        });
+        };
+        mLocationHandler.getLocation().observeForever(mLocationObserver);
 
 
         findPreference("lookupGPS").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
@@ -72,6 +74,14 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
             findPreference("information").setSummary(getText(R.string.information_text).toString().replace("#", versionName));
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (mLocationHandler != null && mLocationObserver != null) {
+            mLocationHandler.getLocation().removeObserver(mLocationObserver);
         }
     }
 
