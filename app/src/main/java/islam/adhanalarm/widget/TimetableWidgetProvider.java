@@ -6,14 +6,18 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.RemoteViews;
 
+import net.sourceforge.jitl.astro.Location;
+
 import islam.adhanalarm.CONSTANT;
 import islam.adhanalarm.MainActivity;
 import islam.adhanalarm.R;
+import islam.adhanalarm.handler.ScheduleData;
 import islam.adhanalarm.handler.ScheduleHandler;
 
 public class TimetableWidgetProvider extends AppWidgetProvider {
@@ -46,19 +50,31 @@ public class TimetableWidgetProvider extends AppWidgetProvider {
     }
 
     private void updateAppWidget(final Context context, final AppWidgetManager appWidgetManager, int appWidgetId) {
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+        Location location = ScheduleHandler.getLocation(
+                settings.getString("latitude", "0"),
+                settings.getString("longitude", "0"),
+                settings.getString("altitude", "0"),
+                settings.getString("pressure", "1010"),
+                settings.getString("temperature", "10")
+        );
+        String calculationMethod = settings.getString("calculationMethod", String.valueOf(CONSTANT.DEFAULT_CALCULATION_METHOD));
+        String roundingType = settings.getString("rounding", String.valueOf(CONSTANT.DEFAULT_ROUNDING_TYPE));
+        int offsetMinutes = Integer.parseInt(settings.getString("offsetMinutes", "0"));
 
-        final ScheduleHandler scheduleHandler = new ScheduleHandler(PreferenceManager.getDefaultSharedPreferences(context));
+        final ScheduleData schedule = ScheduleHandler.calculate(location, calculationMethod, roundingType, offsetMinutes);
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_timetable);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, new Intent(context, MainActivity.class), 0);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, new Intent(context, MainActivity.class), PendingIntent.FLAG_IMMUTABLE);
         views.setOnClickPendingIntent(R.id.today, pendingIntent);
 
         final boolean isRTL = context.getResources().getConfiguration().getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
         final int rowSelectedStart = isRTL ? R.drawable.row_selected_right_thin : R.drawable.row_selected_left_thin;
         final int rowSelectedEnd = isRTL ? R.drawable.row_selected_left_thin : R.drawable.row_selected_right_thin;
-        final int nextTimeIndex = scheduleHandler.getNextTimeIndex();
+        final int nextTimeIndex = schedule.nextTimeIndex;
+        String timeFormat = settings.getString("timeFormat", String.valueOf(CONSTANT.DEFAULT_TIME_FORMAT));
         for (short i = CONSTANT.FAJR; i <= CONSTANT.NEXT_FAJR; i++) {
-            views.setTextViewText(times[i], scheduleHandler.getFormattedTime(i));
+            views.setTextViewText(times[i], ScheduleHandler.getFormattedTime(schedule.schedule, schedule.extremes, i, timeFormat));
             try {
                 views.setInt(labels[i], "setBackgroundResource", i == nextTimeIndex ? rowSelectedStart : R.drawable.row_divider);
                 views.setInt(times[i], "setBackgroundResource", i == nextTimeIndex ? rowSelectedEnd : R.drawable.row_divider);
@@ -68,5 +84,5 @@ public class TimetableWidgetProvider extends AppWidgetProvider {
             }
         }
         appWidgetManager.updateAppWidget(appWidgetId, views);
-	}
+    }
 }
