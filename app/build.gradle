@@ -10,7 +10,7 @@ android {
         kotlinCompilerExtensionVersion "1.5.8"
     }
     compileSdk 34
-    compileSdkVersion 33
+    compileSdkVersion 34
     defaultConfig {
         applicationId "islam.adhanalarm"
         minSdkVersion 24 
