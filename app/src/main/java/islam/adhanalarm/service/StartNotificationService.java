@@ -9,9 +9,12 @@ import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.os.Build;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
-import android.support.v4.app.JobIntentService;
-import android.support.v4.app.NotificationCompat;
+// import android.support.annotation.NonNull;
+// import android.support.v4.app.JobIntentService;
+// import android.support.v4.app.NotificationCompat;
+import androidx.annotation.NonNull;
+import androidx.core.app.JobIntentService;
+import androidx.core.app.NotificationCompat;
 import android.telephony.TelephonyManager;
 
 import islam.adhanalarm.App;
