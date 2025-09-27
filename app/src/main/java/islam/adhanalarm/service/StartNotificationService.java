@@ -20,7 +20,6 @@ import android.telephony.TelephonyManager;
 import islam.adhanalarm.App;
 import islam.adhanalarm.CONSTANT;
 import islam.adhanalarm.R;
-import islam.adhanalarm.handler.ScheduleHandler;
 import islam.adhanalarm.receiver.HandleNotificationReceiver;
 
 public class StartNotificationService extends JobIntentService {
@@ -38,8 +37,31 @@ public class StartNotificationService extends JobIntentService {
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 
         short timeIndex = intent.getShortExtra("timeIndex", (short) -1);
-        ScheduleHandler scheduleHandler = new ScheduleHandler(settings);
-        short notificationType = scheduleHandler.getNotificationType(timeIndex);
+
+        final short notificationType;
+        if (timeIndex != -1) {
+            short queryTimeIndex = timeIndex;
+            if (queryTimeIndex == CONSTANT.NEXT_FAJR) {
+                queryTimeIndex = CONSTANT.FAJR;
+            }
+
+            String defaultValue;
+            switch (queryTimeIndex) {
+                case CONSTANT.FAJR:
+                case CONSTANT.MAGHRIB:
+                    defaultValue = String.valueOf(CONSTANT.NOTIFICATION_PLAY);
+                    break;
+                case CONSTANT.SUNRISE:
+                    defaultValue = String.valueOf(CONSTANT.NOTIFICATION_NONE);
+                    break;
+                default:
+                    defaultValue = String.valueOf(CONSTANT.NOTIFICATION_DEFAULT);
+                    break;
+            }
+            notificationType = Short.parseShort(settings.getString("notificationMethod" + queryTimeIndex, defaultValue));
+        } else {
+            notificationType = CONSTANT.NOTIFICATION_NONE;
+        }
 
         if (timeIndex == -1) {
             // Got here from boot

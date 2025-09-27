@@ -4,14 +4,18 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 // import android.support.v4.content.WakefulBroadcastReceiver;
 import androidx.legacy.content.WakefulBroadcastReceiver;
+
+import net.sourceforge.jitl.astro.Location;
 
 import java.util.Calendar;
 
 import islam.adhanalarm.CONSTANT;
 import islam.adhanalarm.MainActivity;
+import islam.adhanalarm.handler.ScheduleData;
 import islam.adhanalarm.handler.ScheduleHandler;
 import islam.adhanalarm.service.StartNotificationService;
 
@@ -31,15 +35,26 @@ public class StartNotificationReceiver extends WakefulBroadcastReceiver {
 	}
 
 	private static void setNextAlarm(Context context) {
-        ScheduleHandler scheduleHandler = new ScheduleHandler(PreferenceManager.getDefaultSharedPreferences(context));
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+		Location location = ScheduleHandler.getLocation(
+				settings.getString("latitude", "0"),
+				settings.getString("longitude", "0"),
+				settings.getString("altitude", "0"),
+				settings.getString("pressure", "1010"),
+				settings.getString("temperature", "10")
+		);
+		String calculationMethod = settings.getString("calculationMethod", String.valueOf(CONSTANT.DEFAULT_CALCULATION_METHOD));
+		String roundingType = settings.getString("rounding", String.valueOf(CONSTANT.DEFAULT_ROUNDING_TYPE));
+		int offsetMinutes = Integer.parseInt(settings.getString("offsetMinutes", "0"));
 
-        short timeIndex = scheduleHandler.getNextTimeIndex();
-        Calendar actualTime = scheduleHandler.getNextTime();
+		ScheduleData schedule = ScheduleHandler.calculate(location, calculationMethod, roundingType, offsetMinutes);
+		short timeIndex = schedule.nextTimeIndex;
+		Calendar actualTime = schedule.schedule[timeIndex];
 
 		if (Calendar.getInstance().after(actualTime)) return; // Somehow current time is greater than the prayer time
 
 		Intent intent = new Intent(context, StartNotificationReceiver.class);
-        intent.setAction(CONSTANT.ACTION_NOTIFY_PRAYER_TIME);
+		intent.setAction(CONSTANT.ACTION_NOTIFY_PRAYER_TIME);
 		intent.putExtra("timeIndex", timeIndex);
 		intent.putExtra("actualTime", actualTime.getTimeInMillis());
 

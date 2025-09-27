@@ -1,13 +1,19 @@
 package islam.adhanalarm;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
+
+import androidx.annotation.Nullable;
+import androidx.lifecycle.Observer;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -33,17 +39,18 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.settings);
 
-        mLocationHandler = new LocationHandler(getActivity());
-        mLocationHandler.addListener(new LocationHandler.LocationListener() {
+        mLocationHandler = new LocationHandler((LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE));
+        mLocationHandler.getLocation().observe(getActivity(), new Observer<Location>() {
             @Override
-            public void onUpdated(Location currentLocation) {
-                mSharedPreferences.edit().putString("latitude", Double.toString(currentLocation.getLatitude())).apply();
-                mSharedPreferences.edit().putString("longitude", Double.toString(currentLocation.getLongitude())).apply();
-                setPreferenceScreen(null);
-                addPreferencesFromResource(R.xml.settings);
-                updateSummaries();
+            public void onChanged(@Nullable Location currentLocation) {
+                if (currentLocation == null) return;
+                mSharedPreferences.edit()
+                        .putString("latitude", Double.toString(currentLocation.getLatitude()))
+                        .putString("longitude", Double.toString(currentLocation.getLongitude()))
+                        .apply();
             }
         });
+
 
         findPreference("lookupGPS").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             public boolean onPreferenceClick(Preference preference) {
@@ -60,7 +67,12 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
             }
         });
 
-        findPreference("information").setSummary(getText(R.string.information_text).toString().replace("#", BuildConfig.VERSION_NAME));
+        try {
+            String versionName = getActivity().getPackageManager().getPackageInfo(getActivity().getPackageName(), 0).versionName;
+            findPreference("information").setSummary(getText(R.string.information_text).toString().replace("#", versionName));
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
