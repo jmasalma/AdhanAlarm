@@ -80,10 +80,17 @@ fun PrayerTimeRow(prayerName: String, prayerTime: String, isNextPrayer: Boolean)
 fun DefaultPreview() {
     // This is a dummy ScheduleData for preview purposes
     val dummyScheduleData = ScheduleData(
-        schedule = Array(7) { java.util.GregorianCalendar() },
-        extremes = BooleanArray(7) { false },
-        hijriDate = fi.joensuu.joyds1.calendar.IslamicCalendar(),
-        nextTimeIndex = CONSTANT.DHUHR
+
+        // schedule = Array(7) { java.util.GregorianCalendar() },
+        // extremes = BooleanArray(7) { false },
+        // hijriDate = fi.joensuu.joyds1.calendar.IslamicCalendar(),
+        // nextTimeIndex = CONSTANT.DHUHR
+
+        Array(7) { java.util.GregorianCalendar() },
+        BooleanArray(7) { false },
+        fi.joensuu.joyds1.calendar.IslamicCalendar(),
+        CONSTANT.DHUHR
+
     )
     PrayerTimeList(scheduleData = dummyScheduleData)
 }
