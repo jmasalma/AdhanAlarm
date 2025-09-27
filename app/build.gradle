@@ -9,11 +9,12 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion "1.4.6"
     }
+    compileSdk 34
     compileSdkVersion 33
     defaultConfig {
         applicationId "islam.adhanalarm"
-        minSdkVersion 21
-        targetSdkVersion 33
+        minSdkVersion 24 
+        targetSdkVersion 34
         versionCode 116
         versionName "2.4"
     }
@@ -24,8 +25,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility JavaVersion.VERSION_17 // Or 21 if using newer JDK
+        targetCompatibility JavaVersion.VERSION_17 // Or 21
     }
     kotlinOptions {
         jvmTarget = "17"
@@ -46,4 +47,5 @@ dependencies {
     implementation "androidx.compose.material:material:$compose_version"
     implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
     implementation 'androidx.activity:activity-compose:1.7.2'
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version") 
 }
