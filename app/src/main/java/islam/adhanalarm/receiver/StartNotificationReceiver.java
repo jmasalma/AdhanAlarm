@@ -5,7 +5,8 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.preference.PreferenceManager;
-import android.support.v4.content.WakefulBroadcastReceiver;
+// import android.support.v4.content.WakefulBroadcastReceiver;
+import androidx.legacy.content.WakefulBroadcastReceiver;
 
 import java.util.Calendar;
 
