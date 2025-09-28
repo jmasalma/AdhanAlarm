@@ -73,7 +73,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val settingsResultProvider = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        viewModel.updateData()
+        viewModel.loadLocationFromSettings()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
