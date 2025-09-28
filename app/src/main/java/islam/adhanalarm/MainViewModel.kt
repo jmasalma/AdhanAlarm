@@ -46,16 +46,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val qiblaDirection: LiveData<Double> = _qiblaDirection
 
     val northDirection: LiveData<Float>
-    val location: LiveData<Location>
+    private val _location = MediatorLiveData<Location>()
+    val location: LiveData<Location> = _location
 
     init {
         compassHandler = CompassHandler(application.getSystemService(Context.SENSOR_SERVICE) as SensorManager)
         locationHandler = LocationHandler(application.getSystemService(Context.LOCATION_SERVICE) as LocationManager)
         northDirection = compassHandler.northDirection
-        location = locationHandler.location
+        _location.addSource(locationHandler.location) { _location.postValue(it) }
 
-        _scheduleData.addSource(location) { updateData() }
-        _qiblaDirection.addSource(location) { updateData() }
+        _scheduleData.addSource(_location) { updateData() }
+        _qiblaDirection.addSource(_location) { updateData() }
     }
 
     fun startCompass() {
@@ -69,6 +70,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun updateLocation() {
         viewModelScope.launch(Dispatchers.IO) {
             locationHandler.update()
+        }
+    }
+
+    fun loadLocationFromSettings() {
+        val latitude = settings.getString("latitude", null)
+        val longitude = settings.getString("longitude", null)
+        if (latitude != null && longitude != null) {
+            val location = Location("settings")
+            location.latitude = latitude.toDouble()
+            location.longitude = longitude.toDouble()
+            _location.postValue(location)
         }
     }
 
