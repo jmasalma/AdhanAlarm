@@ -28,13 +28,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val compassHandler: CompassHandler
     private val locationHandler: LocationHandler
-    private val masterKey = MasterKey.Builder(application)
+    private val masterKey = MasterKey.Builder(application, MasterKey.DEFAULT_MASTER_KEY_ALIAS)
         .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
         .build()
     private val settings = EncryptedSharedPreferences.create(
-        application,
         "secret_shared_prefs",
         masterKey,
+        application,
         EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
     )
