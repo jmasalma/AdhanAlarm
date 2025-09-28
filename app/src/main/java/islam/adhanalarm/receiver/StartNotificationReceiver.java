@@ -23,15 +23,12 @@ public class StartNotificationReceiver extends WakefulBroadcastReceiver {
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
-        if (intent.getAction() != null) {
-            if (intent.getAction().equals("android.intent.action.BOOT_COMPLETED")) {
-                intent.putExtra("isOnBootUp", true);
-            }
-            if (!intent.getAction().equals(CONSTANT.ACTION_UPDATE_PRAYER_TIME)) {
-                StartNotificationService.enqueueWork(context, intent);
-            }
-        }
-        setNextAlarm(context);
+		if (intent.getAction() != null) {
+			if (!intent.getAction().equals(CONSTANT.ACTION_UPDATE_PRAYER_TIME)) {
+				StartNotificationService.enqueueWork(context, intent);
+			}
+		}
+		setNextAlarm(context);
 	}
 
 	private static void setNextAlarm(Context context) {

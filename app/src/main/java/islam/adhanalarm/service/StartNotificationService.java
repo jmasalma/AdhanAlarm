@@ -63,12 +63,7 @@ public class StartNotificationService extends JobIntentService {
             notificationType = CONSTANT.NOTIFICATION_NONE;
         }
 
-        if (timeIndex == -1) {
-            // Got here from boot
-            if (settings.getBoolean("bismillahOnBootUp", false)) {
-                App.startMedia(R.raw.bismillah);
-            }
-        } else if (notificationType != CONSTANT.NOTIFICATION_NONE) {
+        if (notificationType != CONSTANT.NOTIFICATION_NONE) {
             if (timeIndex == CONSTANT.NEXT_FAJR) {
                 timeIndex = CONSTANT.FAJR;
             }
