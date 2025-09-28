@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -111,7 +112,7 @@ fun MainScreen(viewModel: MainViewModel) {
     val items = listOf(Screen.Today, Screen.Qibla)
     Scaffold(
         bottomBar = {
-            BottomNavigation {
+            BottomNavigation(backgroundColor = colorResource(R.color.colorPrimary)) {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
                 items.forEach { screen ->
