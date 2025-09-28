@@ -98,6 +98,7 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val REQUEST_LOCATION = 1
+        private const val REQUEST_NOTIFICATIONS = 2
     }
 }
 
