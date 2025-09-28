@@ -11,10 +11,15 @@ import android.os.Bundle;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.lifecycle.Observer;
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.MasterKey;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
@@ -31,8 +36,8 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
             "temperature",
             "offsetMinutes"
     ));
-    SharedPreferences mSharedPreferences;
-    LocationHandler mLocationHandler;
+    private SharedPreferences mEncryptedSharedPreferences;
+    private LocationHandler mLocationHandler;
     private Observer<Location> mLocationObserver;
 
     @Override
@@ -40,15 +45,40 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.settings);
 
+        try {
+            MasterKey masterKey = new MasterKey.Builder(getActivity(), MasterKey.DEFAULT_MASTER_KEY_ALIAS)
+                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                    .build();
+
+            mEncryptedSharedPreferences = EncryptedSharedPreferences.create(
+                    getActivity(),
+                    "secret_shared_prefs",
+                    masterKey,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            );
+        } catch (GeneralSecurityException | IOException e) {
+            Log.e("SettingsFragment", "Failed to create encrypted shared preferences", e);
+            getActivity().finish(); // Can't work without preferences
+            return;
+        }
+
         mLocationHandler = new LocationHandler((LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE));
         mLocationObserver = new Observer<Location>() {
             @Override
             public void onChanged(@Nullable Location currentLocation) {
                 if (currentLocation == null) return;
-                mSharedPreferences.edit()
-                        .putString("latitude", Double.toString(currentLocation.getLatitude()))
-                        .putString("longitude", Double.toString(currentLocation.getLongitude()))
-                        .apply();
+                SharedPreferences.Editor editor = mEncryptedSharedPreferences.edit();
+                editor.putString("latitude", Double.toString(currentLocation.getLatitude()));
+                editor.putString("longitude", Double.toString(currentLocation.getLongitude()));
+                editor.apply();
+
+                // Also update the UI preferences
+                SharedPreferences uiPrefs = getPreferenceManager().getSharedPreferences();
+                SharedPreferences.Editor uiEditor = uiPrefs.edit();
+                uiEditor.putString("latitude", Double.toString(currentLocation.getLatitude()));
+                uiEditor.putString("longitude", Double.toString(currentLocation.getLongitude()));
+                uiEditor.apply();
             }
         };
         mLocationHandler.getLocation().observeForever(mLocationObserver);
@@ -88,34 +118,66 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
     @Override
     public void onResume() {
         super.onResume();
-        mSharedPreferences = getPreferenceManager().getSharedPreferences();
-        mSharedPreferences.registerOnSharedPreferenceChangeListener(this);
+        // Register listener on the UI (default) preferences
+        getPreferenceManager().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
+
+        // Sync from encrypted to UI preferences
+        syncEncryptedToUi();
+
         updateSummaries();
     }
 
+    private void syncEncryptedToUi() {
+        SharedPreferences uiPrefs = getPreferenceManager().getSharedPreferences();
+        SharedPreferences.Editor uiEditor = uiPrefs.edit();
+        for (String key : TEXT_ENTRIES) {
+            String value = mEncryptedSharedPreferences.getString(key, null);
+            if (value != null) {
+                uiEditor.putString(key, value);
+            }
+        }
+        uiEditor.apply();
+    }
+
     private void updateSummaries() {
-        Map<String, ?> preferencesMap = mSharedPreferences.getAll();
+        // Summaries are based on the UI preferences
+        Map<String, ?> preferencesMap = getPreferenceManager().getSharedPreferences().getAll();
         for (Map.Entry<String, ?> preferenceEntry : preferencesMap.entrySet()) {
             if (TEXT_ENTRIES.contains(preferenceEntry.getKey())) {
-                updateSummary((EditTextPreference) findPreference(preferenceEntry.getKey()));
+                Preference pref = findPreference(preferenceEntry.getKey());
+                if (pref instanceof EditTextPreference) {
+                    updateSummary((EditTextPreference) pref);
+                }
             }
         }
     }
 
     @Override
     public void onPause() {
-        mSharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
+        getPreferenceManager().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
         super.onPause();
     }
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (sharedPreferences.contains(key) && TEXT_ENTRIES.contains(key)) {
-            updateSummary((EditTextPreference) findPreference(key));
+        // This is called when UI (default) preferences change
+        if (TEXT_ENTRIES.contains(key)) {
+            // Update summary
+            Preference pref = findPreference(key);
+            if (pref instanceof EditTextPreference) {
+                updateSummary((EditTextPreference) pref);
+            }
+
+            // Sync the change to encrypted preferences
+            SharedPreferences.Editor encryptedEditor = mEncryptedSharedPreferences.edit();
+            encryptedEditor.putString(key, sharedPreferences.getString(key, ""));
+            encryptedEditor.apply();
         }
     }
 
     private void updateSummary(EditTextPreference preference) {
-        preference.setSummary(preference.getText());
+        if (preference != null) {
+            preference.setSummary(preference.getText());
+        }
     }
 }
