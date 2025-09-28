@@ -72,7 +72,30 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     val locationAstro = ScheduleHandler.getLocation(latitude, longitude, altitude, pressure, temperature)
 
                     // Calculate and post schedule
-                    val calculationMethodIndex = settings.getString("calculationMethodsIndex", CONSTANT.DEFAULT_CALCULATION_METHOD.toString())
+                    var calculationMethodIndex = settings.getString("calculationMethodsIndex", null)
+                    if (calculationMethodIndex == null) {
+                        val geocoder = android.location.Geocoder(getApplication(), java.util.Locale.getDefault())
+                        try {
+                            val addresses = geocoder.getFromLocation(loc.latitude, loc.longitude, 1)
+                            val countryCode = addresses?.firstOrNull()?.countryCode
+                            if (countryCode != null) {
+                                val locale = java.util.Locale("", countryCode)
+                                val countryCodeAlpha3 = locale.isO3Country.toUpperCase(java.util.Locale.ROOT)
+                                for ((index, codes) in CONSTANT.CALCULATION_METHOD_COUNTRY_CODES.withIndex()) {
+                                    if (codes.contains(countryCodeAlpha3)) {
+                                        calculationMethodIndex = index.toString()
+                                        break
+                                    }
+                                }
+                            }
+                        } catch (e: java.io.IOException) {
+                            // Ignore
+                        }
+                        if (calculationMethodIndex == null) {
+                            calculationMethodIndex = CONSTANT.DEFAULT_CALCULATION_METHOD.toString()
+                        }
+                        settings.edit().putString("calculationMethodsIndex", calculationMethodIndex).apply()
+                    }
                     val roundingTypeIndex = settings.getString("roundingTypesIndex", CONSTANT.DEFAULT_ROUNDING_TYPE.toString())
                     val offsetMinutes = settings.getString("offsetMinutes", "0")?.toInt() ?: 0
                     val newScheduleData = ScheduleHandler.calculate(locationAstro, calculationMethodIndex, roundingTypeIndex, offsetMinutes)

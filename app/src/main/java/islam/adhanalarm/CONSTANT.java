@@ -29,7 +29,7 @@ public class CONSTANT {
 			/* METHOD_KARACHI_HANAF:	Pakistan, Bangladesh, India, Afghanistan, Parts of Europe */
 			new String[]{"AFG", "BGD", "IND", "PAK"},
 
-			/* METHOD_NORTH_AMERICA:	Parts of the USA, Canada, Parts of the UK */
+			/* METHOD_ISNA:	Parts of the USA, Canada, Parts of the UK */
 			new String[]{"USA", "CAN"},
 
 			/* METHOD_MUSLIM_LEAGUE:	Europe, The Far East, Parts of the USA */
@@ -47,7 +47,7 @@ public class CONSTANT {
 			new String[]{}
 
 	};
-	public static final Method[] CALCULATION_METHODS = new Method[]{Method.EGYPT_SURVEY, Method.KARACHI_SHAF, Method.KARACHI_HANAF, Method.NORTH_AMERICA, Method.MUSLIM_LEAGUE, Method.UMM_ALQURRA, Method.FIXED_ISHAA};
+	public static final Method[] CALCULATION_METHODS = new Method[]{Method.EGYPT_SURVEY, Method.KARACHI_SHAF, Method.KARACHI_HANAF, Method.ISNA, Method.MUSLIM_LEAGUE, Method.UMM_ALQURRA, Method.FIXED_ISHAA};
 	public static final short DEFAULT_CALCULATION_METHOD = 4; // MUSLIM_LEAGUE
 
 	public static final short FAJR = 0, SUNRISE = 1, DHUHR = 2, ASR = 3, MAGHRIB = 4, ISHAA = 5, NEXT_FAJR = 6; // Notification Times
