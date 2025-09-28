@@ -91,10 +91,9 @@ public class StartNotificationService extends JobIntentService {
             NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                String channelId = "ADHAN_ALARM_CHANNEL_ID";
-                NotificationChannel channel = new NotificationChannel(channelId, getString(R.string.app_name), NotificationManager.IMPORTANCE_DEFAULT);
+                NotificationChannel channel = new NotificationChannel(CHANNEL_ID, getString(R.string.app_name), NotificationManager.IMPORTANCE_DEFAULT);
                 notificationManager.createNotificationChannel(channel);
-                builder.setChannelId(channelId);
+                builder.setChannelId(CHANNEL_ID);
             }
             notificationManager.notify(NOTIFICATION_ID, builder.build());
         }
