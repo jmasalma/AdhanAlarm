@@ -74,9 +74,6 @@
             android:entries="@array/notification_methods"
             android:entryValues="@array/notification_methods_values"
             android:defaultValue="1" />
-        <CheckBoxPreference
-            android:key="bismillahOnBootUp"
-            android:title="@string/bismillah_on_boot_up" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/advanced">
