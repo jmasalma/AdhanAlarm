@@ -79,6 +79,5 @@
                 <action android:name="islam.adhanalarm.action.NOTIFICATION_STOPPED" />
             </intent-filter>
         </receiver>
-            <service android:name=".service.StartNotificationService" android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 </manifest>
