@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.text.Html
 import android.view.Menu
 import android.view.MenuItem
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -41,7 +42,7 @@ class MainActivity : AppCompatActivity() {
             MainScreen(viewModel)
         }
 
-        supportActionBar?.title = Html.fromHtml("<font face='monospace'>" + supportActionBar?.title + "</font>")
+        supportActionBar?.title = Html.fromHtml("<font face='monospace'>" + supportActionBar?.title + "</font>", Html.FROM_HTML_MODE_LEGACY)
 
        if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), REQUEST_LOCATION)
@@ -69,21 +70,18 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
+    private val settingsResultProvider = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        viewModel.updateData()
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.menu_settings -> {
                 val i = Intent(applicationContext, SettingsActivity::class.java)
-                startActivityForResult(i, CONSTANT.RESULT_SETTINGS)
+                settingsResultProvider.launch(i)
                 true
             }
             else -> super.onOptionsItemSelected(item)
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == CONSTANT.RESULT_SETTINGS) {
-            viewModel.updateData()
         }
     }
 

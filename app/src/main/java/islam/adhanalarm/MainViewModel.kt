@@ -5,9 +5,11 @@ import android.content.Context
 import android.hardware.SensorManager
 import android.location.Location
 import android.location.LocationManager
-import android.preference.PreferenceManager
+import android.os.Build
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.viewModelScope
 import islam.adhanalarm.handler.CompassHandler
@@ -19,12 +21,23 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.sourceforge.jitl.Jitl
 import net.sourceforge.jitl.astro.Direction
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val compassHandler: CompassHandler
     private val locationHandler: LocationHandler
-    private val settings = PreferenceManager.getDefaultSharedPreferences(application)
+    private val masterKey = MasterKey.Builder(application)
+        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+        .build()
+    private val settings = EncryptedSharedPreferences.create(
+        application,
+        "secret_shared_prefs",
+        masterKey,
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+    )
 
     private val _scheduleData = MediatorLiveData<ScheduleData>()
     val scheduleData: LiveData<ScheduleData> = _scheduleData
@@ -75,21 +88,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     var calculationMethodIndex = settings.getString("calculationMethodsIndex", null)
                     if (calculationMethodIndex == null) {
                         val geocoder = android.location.Geocoder(getApplication(), java.util.Locale.getDefault())
-                        try {
-                            val addresses = geocoder.getFromLocation(loc.latitude, loc.longitude, 1)
-                            val countryCode = addresses?.firstOrNull()?.countryCode
-                            if (countryCode != null) {
-                                val locale = java.util.Locale("", countryCode)
-                                val countryCodeAlpha3 = locale.isO3Country.toUpperCase(java.util.Locale.ROOT)
-                                for ((index, codes) in CONSTANT.CALCULATION_METHOD_COUNTRY_CODES.withIndex()) {
-                                    if (codes.contains(countryCodeAlpha3)) {
-                                        calculationMethodIndex = index.toString()
-                                        break
-                                    }
+                        val addresses = awaitGetFromLocation(geocoder, loc.latitude, loc.longitude)
+                        val countryCode = addresses?.firstOrNull()?.countryCode
+                        if (countryCode != null) {
+                            val locale = java.util.Locale("", countryCode)
+                            val countryCodeAlpha3 = locale.isO3Country.uppercase(java.util.Locale.ROOT)
+                            for ((index, codes) in CONSTANT.CALCULATION_METHOD_COUNTRY_CODES.withIndex()) {
+                                if (codes.contains(countryCodeAlpha3)) {
+                                    calculationMethodIndex = index.toString()
+                                    break
                                 }
                             }
-                        } catch (e: java.io.IOException) {
-                            // Ignore
                         }
                         if (calculationMethodIndex == null) {
                             calculationMethodIndex = CONSTANT.DEFAULT_CALCULATION_METHOD.toString()
@@ -105,6 +114,28 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     val qibla = Jitl.getNorthQibla(locationAstro)
                     _qiblaDirection.postValue(qibla.getDecimalValue(Direction.NORTH))
                 }
+            }
+        }
+    }
+
+    private suspend fun awaitGetFromLocation(geocoder: android.location.Geocoder, latitude: Double, longitude: Double): List<android.location.Address>? {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            suspendCoroutine { continuation ->
+                geocoder.getFromLocation(latitude, longitude, 1, object : android.location.Geocoder.GeocodeListener {
+                    override fun onGeocode(addresses: MutableList<android.location.Address>) {
+                        continuation.resume(addresses)
+                    }
+                    override fun onError(errorMessage: String?) {
+                        continuation.resume(null)
+                    }
+                })
+            }
+        } else {
+            try {
+                @Suppress("DEPRECATION")
+                geocoder.getFromLocation(latitude, longitude, 1)
+            } catch (e: java.io.IOException) {
+                null
             }
         }
     }
