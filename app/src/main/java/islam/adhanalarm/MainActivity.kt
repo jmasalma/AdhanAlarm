@@ -89,11 +89,16 @@ class MainActivity : AppCompatActivity() {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_LOCATION) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                viewModel.updateLocation()
-            } else {
-                viewModel.loadLocationFromSettings()
+        when (requestCode) {
+            REQUEST_LOCATION -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    viewModel.updateLocation()
+                } else {
+                    viewModel.loadLocationFromSettings()
+                }
+            }
+            REQUEST_NOTIFICATIONS -> {
+                // User has allowed or disallowed notifications. We don't need to do anything here.
             }
         }
     }
