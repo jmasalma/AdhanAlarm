@@ -320,13 +320,13 @@ public class Method {
 			Rounding.SPECIAL, Mathhab.HANAFI, Utils.DEF_NEAREST_LATITUDE, ExtremeLatitude.GOOD_INVALID, false, 0, 0, 0, 0, 0, 0);
 	
 	/**
-	 *  Islamic Society of North America<br />
-     *   <ul><li>Fajr Angle      = 15</li>                                 
-     *   <li>Ishaa Angle     = 15</li>                                 
+	 *  Islamic Society of North America (ISNA)<br />
+     *   <ul><li>Fajr Angle      = 15</li>
+     *   <li>Ishaa Angle     = 15</li>
      *   <li>Used in:        Canada, Parts of UK, parts of United States</li>
-     *   </ul>                  
+     *   </ul>
 	 */
-	public static final Method NORTH_AMERICA = new Method(15, 15, Utils.DEF_IMSAAK_ANGLE, 0, 0, 0,
+	public static final Method ISNA = new Method(15, 15, Utils.DEF_IMSAAK_ANGLE, 0, 0, 0,
 			Rounding.SPECIAL, Mathhab.SHAAFI, Utils.DEF_NEAREST_LATITUDE, ExtremeLatitude.GOOD_INVALID, false, 0, 0, 0, 0, 0, 0);
 	
 	/**
