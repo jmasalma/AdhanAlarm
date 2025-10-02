@@ -70,10 +70,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     init {
         sharedPreferences = try {
+            val masterKey = MasterKey.Builder(application, MasterKey.DEFAULT_MASTER_KEY_ALIAS)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build()
             EncryptedSharedPreferences.create(
-                "secret_shared_prefs",
-                MasterKey.DEFAULT_MASTER_KEY_ALIAS,
                 application,
+                "secret_shared_prefs",
+                masterKey,
                 EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             )
