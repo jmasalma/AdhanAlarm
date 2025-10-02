@@ -70,7 +70,7 @@ public class StartNotificationReceiver extends BroadcastReceiver {
             NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NotificationHelper.CHANNEL_ID)
                     .setSmallIcon(R.drawable.icon_notification)
                     .setContentTitle((timeIndex != CONSTANT.SUNRISE ? context.getString(R.string.allahu_akbar) + ": " : "") + context.getString(R.string.time_for) + " " + context.getString(CONSTANT.TIME_NAMES[timeIndex]).toLowerCase())
-                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                    .setPriority(NotificationCompat.PRIORITY_HIGH)
                     .setContentIntent(PendingIntent.getBroadcast(context, 0, new Intent(CONSTANT.ACTION_NOTIFICATION_CLICKED, null, context, HandleNotificationReceiver.class), PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE))
                     .setDeleteIntent(PendingIntent.getBroadcast(context, 0, new Intent(CONSTANT.ACTION_NOTIFICATION_DELETED, null, context, HandleNotificationReceiver.class), PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE));
 

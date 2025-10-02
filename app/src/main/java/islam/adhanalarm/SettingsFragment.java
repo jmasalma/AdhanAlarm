@@ -36,6 +36,18 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
             "temperature",
             "offsetMinutes"
     ));
+
+    final Set<String> WIDGET_UPDATE_KEYS = new HashSet<>(Arrays.asList(
+            "latitude",
+            "longitude",
+            "altitude",
+            "pressure",
+            "temperature",
+            "offsetMinutes",
+            "calculationMethod",
+            "rounding",
+            "timeFormat"
+    ));
     private SharedPreferences mEncryptedSharedPreferences;
     private LocationHandler mLocationHandler;
     private Observer<Location> mLocationObserver;
@@ -68,17 +80,30 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
             @Override
             public void onChanged(@Nullable Location currentLocation) {
                 if (currentLocation == null) return;
+
+                final String latString = Double.toString(currentLocation.getLatitude());
+                final String lonString = Double.toString(currentLocation.getLongitude());
+
                 SharedPreferences.Editor editor = mEncryptedSharedPreferences.edit();
-                editor.putString("latitude", Double.toString(currentLocation.getLatitude()));
-                editor.putString("longitude", Double.toString(currentLocation.getLongitude()));
+                editor.putString("latitude", latString);
+                editor.putString("longitude", lonString);
                 editor.apply();
 
                 // Also update the UI preferences
                 SharedPreferences uiPrefs = getPreferenceManager().getSharedPreferences();
                 SharedPreferences.Editor uiEditor = uiPrefs.edit();
-                uiEditor.putString("latitude", Double.toString(currentLocation.getLatitude()));
-                uiEditor.putString("longitude", Double.toString(currentLocation.getLongitude()));
+                uiEditor.putString("latitude", latString);
+                uiEditor.putString("longitude", lonString);
                 uiEditor.apply();
+
+                // Manually update the preference summaries
+                EditTextPreference latitudePref = (EditTextPreference) findPreference("latitude");
+                latitudePref.setText(latString);
+                updateSummary(latitudePref);
+
+                EditTextPreference longitudePref = (EditTextPreference) findPreference("longitude");
+                longitudePref.setText(lonString);
+                updateSummary(longitudePref);
             }
         };
         mLocationHandler.getLocation().observeForever(mLocationObserver);
@@ -161,17 +186,26 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         // This is called when UI (default) preferences change
+
+        // First, update the summary if it's a text-based preference
         if (TEXT_ENTRIES.contains(key)) {
-            // Update summary
             Preference pref = findPreference(key);
             if (pref instanceof EditTextPreference) {
                 updateSummary((EditTextPreference) pref);
             }
+        }
 
+        // If the key is one that affects prayer time calculations, sync it and update widgets
+        if (WIDGET_UPDATE_KEYS.contains(key)) {
             // Sync the change to encrypted preferences
             SharedPreferences.Editor encryptedEditor = mEncryptedSharedPreferences.edit();
             encryptedEditor.putString(key, sharedPreferences.getString(key, ""));
             encryptedEditor.apply();
+
+            // Send a broadcast to update any active widgets
+            Intent intent = new Intent(CONSTANT.ACTION_UPDATE_PRAYER_TIME);
+            intent.setPackage(getActivity().getPackageName());
+            getActivity().sendBroadcast(intent);
         }
     }
 
