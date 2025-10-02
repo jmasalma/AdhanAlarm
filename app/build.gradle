@@ -1,20 +1,20 @@
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.compose'
+}
 
 android {
     namespace "islam.adhanalarm"
     buildFeatures {
         compose true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion "1.5.8"
-    }
-    compileSdk 34
-    compileSdkVersion 34
+    compileSdk 35
+    compileSdkVersion 35
     defaultConfig {
         applicationId "islam.adhanalarm"
-        minSdkVersion 24 
-        targetSdkVersion 34
+        minSdkVersion 24
+        targetSdkVersion 35
         versionCode 116
         versionName "3.0"
     }
@@ -31,51 +31,44 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17 // Or 21 if using newer JDK
-        targetCompatibility JavaVersion.VERSION_17 // Or 21
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
     }
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = "21"
     }
 }
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.9.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel:2.5.1'
-    implementation 'androidx.lifecycle:lifecycle-livedata:2.5.1'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.20"
-    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1"
-    def compose_version = "1.4.3"
-    // implementation "androidx.compose.ui:ui:$compose_version"
-    // implementation "androidx.compose.material:material:$compose_version"
-    // implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
-    implementation 'androidx.activity:activity-compose:1.7.2'
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
+    // Core
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4"
+    implementation "androidx.activity:activity-compose:1.9.0"
+    implementation "androidx.security:security-crypto:1.1.0-alpha06"
 
-    // Core Compose BOM to keep versions aligned
-    implementation platform("androidx.compose:compose-bom:2024.09.00")  // pick the latest stable
+    // Compose BOM
+    implementation platform("androidx.compose:compose-bom:2024.09.00")
 
-    // UI + Material
+    // UI - Material 3
     implementation "androidx.compose.ui:ui"
     implementation "androidx.compose.material3:material3"
     implementation "androidx.compose.ui:ui-tooling-preview"
 
-    // Navigation for Compose
+    // UI - Material (Legacy - for migration)
+    implementation "androidx.compose.material:material"
+    implementation "androidx.compose.material:material-icons-extended"
+
+    // Navigation
     implementation "androidx.navigation:navigation-compose:2.8.3"
 
-    // LiveData integration with Compose
+    // LiveData integration
     implementation "androidx.compose.runtime:runtime-livedata"
 
     // Tooling (debug only)
     debugImplementation "androidx.compose.ui:ui-tooling"
     debugImplementation "androidx.compose.ui:ui-test-manifest"
 
-    implementation "androidx.compose.material:material"
-    implementation "androidx.compose.material:material-icons-extended"
-    implementation "androidx.security:security-crypto:1.1.0-alpha06"
+    implementation "androidx.localbroadcastmanager:localbroadcastmanager:1.1.0"
 
     // Testing
     testImplementation 'junit:junit:4.13.2'
@@ -84,5 +77,4 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     androidTestImplementation platform("androidx.compose:compose-bom:2024.09.00")
     androidTestImplementation "androidx.compose.ui:ui-test-junit4"
-    debugImplementation "androidx.compose.ui:ui-test-manifest"
 }

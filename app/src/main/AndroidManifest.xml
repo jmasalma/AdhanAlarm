@@ -46,8 +46,6 @@
                     android:pathPrefix="/adhanalarm" />
             </intent-filter>
         </activity>
-        <activity android:name=".SettingsActivity"
-            android:launchMode="singleTop" />
         <receiver android:name=".widget.TimetableWidgetProvider" android:exported="false" android:label="@string/adhan_timetable">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
