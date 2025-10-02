@@ -1,7 +1,6 @@
 package islam.adhanalarm.receiver;
 
 import android.app.AlarmManager;
-import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -9,7 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.AudioManager;
-import android.os.Build;
 import android.preference.PreferenceManager;
 import android.telephony.TelephonyManager;
 import androidx.core.app.NotificationCompat;
@@ -21,10 +19,10 @@ import islam.adhanalarm.MainActivity;
 import islam.adhanalarm.R;
 import islam.adhanalarm.handler.ScheduleData;
 import islam.adhanalarm.handler.ScheduleHandler;
+import islam.adhanalarm.util.NotificationHelper;
 
 public class StartNotificationReceiver extends BroadcastReceiver {
 
-    private static final String CHANNEL_ID = "adhanalarm";
     private static final int NOTIFICATION_ID = 1651;
 
     @Override
@@ -69,7 +67,7 @@ public class StartNotificationReceiver extends BroadcastReceiver {
             if (timeIndex == CONSTANT.NEXT_FAJR) {
                 timeIndex = CONSTANT.FAJR;
             }
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NotificationHelper.CHANNEL_ID)
                     .setSmallIcon(R.drawable.icon_notification)
                     .setContentTitle((timeIndex != CONSTANT.SUNRISE ? context.getString(R.string.allahu_akbar) + ": " : "") + context.getString(R.string.time_for) + " " + context.getString(CONSTANT.TIME_NAMES[timeIndex]).toLowerCase())
                     .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -97,11 +95,6 @@ public class StartNotificationReceiver extends BroadcastReceiver {
 
             NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                NotificationChannel channel = new NotificationChannel(CHANNEL_ID, context.getString(R.string.app_name), NotificationManager.IMPORTANCE_DEFAULT);
-                notificationManager.createNotificationChannel(channel);
-                builder.setChannelId(CHANNEL_ID);
-            }
             if (notificationManager != null) {
                 notificationManager.notify(NOTIFICATION_ID, builder.build());
             }
