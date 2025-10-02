@@ -7,6 +7,7 @@ import android.media.MediaPlayer;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import islam.adhanalarm.receiver.StartNotificationReceiver;
+import islam.adhanalarm.util.NotificationHelper;
 import islam.adhanalarm.widget.NextNotificationWidgetProvider;
 import islam.adhanalarm.widget.TimetableWidgetProvider;
 
@@ -44,6 +45,7 @@ public class App extends Application {
         super.onCreate();
         sInstance = this;
         mPlayer = MediaPlayer.create(this, R.raw.bismillah);
+        NotificationHelper.createNotificationChannel(this);
     }
 
     @Override
