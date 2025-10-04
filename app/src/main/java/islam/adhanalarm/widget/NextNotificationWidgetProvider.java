@@ -7,10 +7,16 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
+import android.util.Log;
 import android.widget.RemoteViews;
 
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.MasterKey;
+
 import net.sourceforge.jitl.astro.Location;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 import islam.adhanalarm.CONSTANT;
 import islam.adhanalarm.MainActivity;
@@ -20,7 +26,7 @@ import islam.adhanalarm.handler.ScheduleHandler;
 
 public class NextNotificationWidgetProvider extends AppWidgetProvider {
 
-    private static final int[] labels = new int[]{ R.string.fajr, R.string.sunrise, R.string.dhuhr, R.string.asr, R.string.maghrib, R.string.ishaa, R.string.next_fajr };
+    private static final int[] labels = new int[]{R.string.fajr, R.string.sunrise, R.string.dhuhr, R.string.asr, R.string.maghrib, R.string.ishaa, R.string.next_fajr};
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
@@ -41,35 +47,49 @@ public class NextNotificationWidgetProvider extends AppWidgetProvider {
     private void onUpdate(Context context) {
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
 
-        ComponentName thisAppWidgetComponentName = new ComponentName(context.getPackageName(),getClass().getName());
+        ComponentName thisAppWidgetComponentName = new ComponentName(context.getPackageName(), getClass().getName());
         int[] appWidgetIds = appWidgetManager.getAppWidgetIds(thisAppWidgetComponentName);
         onUpdate(context, appWidgetManager, appWidgetIds);
     }
 
     private void updateAppWidget(final Context context, final AppWidgetManager appWidgetManager, int appWidgetId) {
-        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
-        Location location = ScheduleHandler.getLocation(
-                settings.getString("latitude", "0"),
-                settings.getString("longitude", "0"),
-                settings.getString("altitude", "0"),
-                settings.getString("pressure", "1010"),
-                settings.getString("temperature", "10")
-        );
-        String calculationMethod = settings.getString("calculationMethod", String.valueOf(CONSTANT.DEFAULT_CALCULATION_METHOD));
-        String roundingType = settings.getString("rounding", String.valueOf(CONSTANT.DEFAULT_ROUNDING_TYPE));
-        int offsetMinutes = Integer.parseInt(settings.getString("offsetMinutes", "0"));
+        try {
+            MasterKey masterKey = new MasterKey.Builder(context, MasterKey.DEFAULT_MASTER_KEY_ALIAS)
+                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                    .build();
 
-        final ScheduleData schedule = ScheduleHandler.calculate(location, calculationMethod, roundingType, offsetMinutes);
-        final short nextTimeIndex = schedule.nextTimeIndex;
+            SharedPreferences settings = EncryptedSharedPreferences.create(
+                    context,
+                    "secret_shared_prefs",
+                    masterKey,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            );
+            Location location = ScheduleHandler.getLocation(
+                    settings.getString("latitude", "0"),
+                    settings.getString("longitude", "0"),
+                    settings.getString("altitude", "0"),
+                    settings.getString("pressure", "1010"),
+                    settings.getString("temperature", "10")
+            );
+            String calculationMethod = settings.getString("calculationMethod", String.valueOf(CONSTANT.DEFAULT_CALCULATION_METHOD));
+            String roundingType = settings.getString("rounding", String.valueOf(CONSTANT.DEFAULT_ROUNDING_TYPE));
+            int offsetMinutes = Integer.parseInt(settings.getString("offsetMinutes", "0"));
 
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_next_notification);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, new Intent(context, MainActivity.class), PendingIntent.FLAG_IMMUTABLE);
-        views.setOnClickPendingIntent(R.id.widget_next_notification, pendingIntent);
+            final ScheduleData schedule = ScheduleHandler.calculate(location, calculationMethod, roundingType, offsetMinutes);
+            final short nextTimeIndex = schedule.nextTimeIndex;
 
-        views.setTextViewText(R.id.time_name, context.getString(labels[nextTimeIndex]));
-        String timeFormat = settings.getString("timeFormat", String.valueOf(CONSTANT.DEFAULT_TIME_FORMAT));
-        views.setTextViewText(R.id.next_notification, ScheduleHandler.getFormattedTime(schedule.schedule, schedule.extremes, nextTimeIndex, timeFormat));
+            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_next_notification);
+            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, new Intent(context, MainActivity.class), PendingIntent.FLAG_IMMUTABLE);
+            views.setOnClickPendingIntent(R.id.widget_next_notification, pendingIntent);
 
-        appWidgetManager.updateAppWidget(appWidgetId, views);
+            views.setTextViewText(R.id.time_name, context.getString(labels[nextTimeIndex]));
+            String timeFormat = settings.getString("timeFormat", String.valueOf(CONSTANT.DEFAULT_TIME_FORMAT));
+            views.setTextViewText(R.id.next_notification, ScheduleHandler.getFormattedTime(schedule.schedule, schedule.extremes, nextTimeIndex, timeFormat));
+
+            appWidgetManager.updateAppWidget(appWidgetId, views);
+        } catch (GeneralSecurityException | IOException e) {
+            Log.e("NextNotificationWidget", "Failed to load encrypted preferences", e);
+        }
     }
 }
