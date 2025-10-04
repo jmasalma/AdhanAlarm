@@ -8,11 +8,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
-import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.View;
 import android.widget.RemoteViews;
 
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.MasterKey;
+
 import net.sourceforge.jitl.astro.Location;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 import islam.adhanalarm.CONSTANT;
 import islam.adhanalarm.MainActivity;
@@ -22,8 +28,8 @@ import islam.adhanalarm.handler.ScheduleHandler;
 
 public class TimetableWidgetProvider extends AppWidgetProvider {
 
-    private static final int[] times = new int[]{ R.id.fajr, R.id.sunrise, R.id.dhuhr, R.id.asr, R.id.maghrib, R.id.ishaa, R.id.next_fajr };
-    private static final int[] labels = new int[]{ R.id.label_fajr, R.id.label_sunrise, R.id.label_dhuhr, R.id.label_asr, R.id.label_maghrib, R.id.label_ishaa, R.id.label_next_fajr };
+    private static final int[] times = new int[]{R.id.fajr, R.id.sunrise, R.id.dhuhr, R.id.asr, R.id.maghrib, R.id.ishaa, R.id.next_fajr};
+    private static final int[] labels = new int[]{R.id.label_fajr, R.id.label_sunrise, R.id.label_dhuhr, R.id.label_asr, R.id.label_maghrib, R.id.label_ishaa, R.id.label_next_fajr};
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
@@ -44,45 +50,60 @@ public class TimetableWidgetProvider extends AppWidgetProvider {
     private void onUpdate(Context context) {
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
 
-        ComponentName thisAppWidgetComponentName = new ComponentName(context.getPackageName(),getClass().getName());
+        ComponentName thisAppWidgetComponentName = new ComponentName(context.getPackageName(), getClass().getName());
         int[] appWidgetIds = appWidgetManager.getAppWidgetIds(thisAppWidgetComponentName);
         onUpdate(context, appWidgetManager, appWidgetIds);
     }
 
     private void updateAppWidget(final Context context, final AppWidgetManager appWidgetManager, int appWidgetId) {
-        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
-        Location location = ScheduleHandler.getLocation(
-                settings.getString("latitude", "0"),
-                settings.getString("longitude", "0"),
-                settings.getString("altitude", "0"),
-                settings.getString("pressure", "1010"),
-                settings.getString("temperature", "10")
-        );
-        String calculationMethod = settings.getString("calculationMethod", String.valueOf(CONSTANT.DEFAULT_CALCULATION_METHOD));
-        String roundingType = settings.getString("rounding", String.valueOf(CONSTANT.DEFAULT_ROUNDING_TYPE));
-        int offsetMinutes = Integer.parseInt(settings.getString("offsetMinutes", "0"));
+        try {
+            MasterKey masterKey = new MasterKey.Builder(context, MasterKey.DEFAULT_MASTER_KEY_ALIAS)
+                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                    .build();
 
-        final ScheduleData schedule = ScheduleHandler.calculate(location, calculationMethod, roundingType, offsetMinutes);
+            SharedPreferences settings = EncryptedSharedPreferences.create(
+                    context,
+                    "secret_shared_prefs",
+                    masterKey,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            );
 
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_timetable);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, new Intent(context, MainActivity.class), PendingIntent.FLAG_IMMUTABLE);
-        views.setOnClickPendingIntent(R.id.today, pendingIntent);
+            Location location = ScheduleHandler.getLocation(
+                    settings.getString("latitude", "0"),
+                    settings.getString("longitude", "0"),
+                    settings.getString("altitude", "0"),
+                    settings.getString("pressure", "1010"),
+                    settings.getString("temperature", "10")
+            );
+            String calculationMethod = settings.getString("calculationMethod", String.valueOf(CONSTANT.DEFAULT_CALCULATION_METHOD));
+            String roundingType = settings.getString("rounding", String.valueOf(CONSTANT.DEFAULT_ROUNDING_TYPE));
+            int offsetMinutes = Integer.parseInt(settings.getString("offsetMinutes", "0"));
 
-        final boolean isRTL = context.getResources().getConfiguration().getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
-        final int rowSelectedStart = isRTL ? R.drawable.row_selected_right_thin : R.drawable.row_selected_left_thin;
-        final int rowSelectedEnd = isRTL ? R.drawable.row_selected_left_thin : R.drawable.row_selected_right_thin;
-        final int nextTimeIndex = schedule.nextTimeIndex;
-        String timeFormat = settings.getString("timeFormat", String.valueOf(CONSTANT.DEFAULT_TIME_FORMAT));
-        for (short i = CONSTANT.FAJR; i <= CONSTANT.NEXT_FAJR; i++) {
-            views.setTextViewText(times[i], ScheduleHandler.getFormattedTime(schedule.schedule, schedule.extremes, i, timeFormat));
-            try {
-                views.setInt(labels[i], "setBackgroundResource", i == nextTimeIndex ? rowSelectedStart : R.drawable.row_divider);
-                views.setInt(times[i], "setBackgroundResource", i == nextTimeIndex ? rowSelectedEnd : R.drawable.row_divider);
-            } catch (Resources.NotFoundException ex) {
-                views.setInt(labels[i], "setBackgroundResource", R.color.selectedRow);
-                views.setInt(times[i], "setBackgroundResource", R.color.selectedRow);
+            final ScheduleData schedule = ScheduleHandler.calculate(location, calculationMethod, roundingType, offsetMinutes);
+
+            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_timetable);
+            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, new Intent(context, MainActivity.class), PendingIntent.FLAG_IMMUTABLE);
+            views.setOnClickPendingIntent(R.id.today, pendingIntent);
+
+            final boolean isRTL = context.getResources().getConfiguration().getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
+            final int rowSelectedStart = isRTL ? R.drawable.row_selected_right_thin : R.drawable.row_selected_left_thin;
+            final int rowSelectedEnd = isRTL ? R.drawable.row_selected_left_thin : R.drawable.row_selected_right_thin;
+            final int nextTimeIndex = schedule.nextTimeIndex;
+            String timeFormat = settings.getString("timeFormat", String.valueOf(CONSTANT.DEFAULT_TIME_FORMAT));
+            for (short i = CONSTANT.FAJR; i <= CONSTANT.NEXT_FAJR; i++) {
+                views.setTextViewText(times[i], ScheduleHandler.getFormattedTime(schedule.schedule, schedule.extremes, i, timeFormat));
+                try {
+                    views.setInt(labels[i], "setBackgroundResource", i == nextTimeIndex ? rowSelectedStart : R.drawable.row_divider);
+                    views.setInt(times[i], "setBackgroundResource", i == nextTimeIndex ? rowSelectedEnd : R.drawable.row_divider);
+                } catch (Resources.NotFoundException ex) {
+                    views.setInt(labels[i], "setBackgroundResource", R.color.selectedRow);
+                    views.setInt(times[i], "setBackgroundResource", R.color.selectedRow);
+                }
             }
+            appWidgetManager.updateAppWidget(appWidgetId, views);
+        } catch (GeneralSecurityException | IOException e) {
+            Log.e("TimetableWidgetProvider", "Failed to load encrypted preferences", e);
         }
-        appWidgetManager.updateAppWidget(appWidgetId, views);
     }
 }
