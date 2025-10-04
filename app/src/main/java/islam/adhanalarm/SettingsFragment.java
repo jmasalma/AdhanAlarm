@@ -68,17 +68,12 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
             @Override
             public void onChanged(@Nullable Location currentLocation) {
                 if (currentLocation == null) return;
-                SharedPreferences.Editor editor = mEncryptedSharedPreferences.edit();
-                editor.putString("latitude", Double.toString(currentLocation.getLatitude()));
-                editor.putString("longitude", Double.toString(currentLocation.getLongitude()));
-                editor.apply();
 
-                // Also update the UI preferences
-                SharedPreferences uiPrefs = getPreferenceManager().getSharedPreferences();
-                SharedPreferences.Editor uiEditor = uiPrefs.edit();
-                uiEditor.putString("latitude", Double.toString(currentLocation.getLatitude()));
-                uiEditor.putString("longitude", Double.toString(currentLocation.getLongitude()));
-                uiEditor.apply();
+                EditTextPreference latitude = (EditTextPreference) findPreference("latitude");
+                latitude.setText(Double.toString(currentLocation.getLatitude()));
+
+                EditTextPreference longitude = (EditTextPreference) findPreference("longitude");
+                longitude.setText(Double.toString(currentLocation.getLongitude()));
             }
         };
         mLocationHandler.getLocation().observeForever(mLocationObserver);
