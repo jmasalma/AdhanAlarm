@@ -28,6 +28,17 @@ import java.util.Set;
 import islam.adhanalarm.handler.LocationHandler;
 
 public class SettingsFragment extends PreferenceFragment implements SharedPreferences.OnSharedPreferenceChangeListener {
+    final Set<String> PRAYER_TIME_ENTRIES = new HashSet<>(Arrays.asList(
+            "latitude",
+            "longitude",
+            "altitude",
+            "pressure",
+            "temperature",
+            "calculationMethod",
+            "rounding",
+            "offsetMinutes",
+            "timeFormat"
+    ));
     final Set<String> TEXT_ENTRIES = new HashSet<>(Arrays.asList(
             "latitude",
             "longitude",
@@ -157,16 +168,22 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         // This is called when UI (default) preferences change
         if (TEXT_ENTRIES.contains(key)) {
-            // Update summary
             Preference pref = findPreference(key);
             if (pref instanceof EditTextPreference) {
                 updateSummary((EditTextPreference) pref);
             }
+        }
 
-            // Sync the change to encrypted preferences
+        // Sync the change to encrypted preferences and update widgets if necessary
+        if (PRAYER_TIME_ENTRIES.contains(key)) {
             SharedPreferences.Editor encryptedEditor = mEncryptedSharedPreferences.edit();
             encryptedEditor.putString(key, sharedPreferences.getString(key, ""));
             encryptedEditor.apply();
+
+            // Notify widgets to update
+            Intent intent = new Intent(CONSTANT.ACTION_UPDATE_PRAYER_TIME);
+            intent.setPackage(getActivity().getPackageName());
+            getActivity().sendBroadcast(intent);
         }
     }
 
