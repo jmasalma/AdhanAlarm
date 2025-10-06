@@ -79,6 +79,9 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
                 uiEditor.putString("latitude", Double.toString(currentLocation.getLatitude()));
                 uiEditor.putString("longitude", Double.toString(currentLocation.getLongitude()));
                 uiEditor.apply();
+
+                updateSummary((EditTextPreference) findPreference("latitude"));
+                updateSummary((EditTextPreference) findPreference("longitude"));
             }
         };
         mLocationHandler.getLocation().observeForever(mLocationObserver);
