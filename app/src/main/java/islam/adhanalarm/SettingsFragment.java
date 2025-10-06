@@ -68,20 +68,24 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
             @Override
             public void onChanged(@Nullable Location currentLocation) {
                 if (currentLocation == null) return;
+
+                final String latitude = Double.toString(currentLocation.getLatitude());
+                final String longitude = Double.toString(currentLocation.getLongitude());
+
+                // Save to encrypted preferences
                 SharedPreferences.Editor editor = mEncryptedSharedPreferences.edit();
-                editor.putString("latitude", Double.toString(currentLocation.getLatitude()));
-                editor.putString("longitude", Double.toString(currentLocation.getLongitude()));
+                editor.putString("latitude", latitude);
+                editor.putString("longitude", longitude);
                 editor.apply();
 
-                // Also update the UI preferences
-                SharedPreferences uiPrefs = getPreferenceManager().getSharedPreferences();
-                SharedPreferences.Editor uiEditor = uiPrefs.edit();
-                uiEditor.putString("latitude", Double.toString(currentLocation.getLatitude()));
-                uiEditor.putString("longitude", Double.toString(currentLocation.getLongitude()));
-                uiEditor.apply();
+                // Update the UI preferences
+                EditTextPreference latitudePref = (EditTextPreference) findPreference("latitude");
+                latitudePref.setText(latitude);
+                updateSummary(latitudePref);
 
-                updateSummary((EditTextPreference) findPreference("latitude"));
-                updateSummary((EditTextPreference) findPreference("longitude"));
+                EditTextPreference longitudePref = (EditTextPreference) findPreference("longitude");
+                longitudePref.setText(longitude);
+                updateSummary(longitudePref);
             }
         };
         mLocationHandler.getLocation().observeForever(mLocationObserver);
