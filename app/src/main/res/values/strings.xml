@@ -45,7 +45,7 @@
     <string name="advanced">Advanced</string>
     <string name="extra_alerts">Extra Alerts</string>
     <string name="daylight_savings">Daylight Savings</string>
-    <string name="lookup_gps">Lookup\nGPS</string>
+    <string name="populate_data">Populate data</string>
     <string name="system_time_zone">System Time Zone</string>
     <string name="gmt">GMT</string>
     <string name="save">Save</string>
@@ -71,7 +71,7 @@
     <string name="offset">Offset</string>
     <string name="minutes">minutes</string>
     <string name="minutes_0_to_disable">Minutes (0 to disable)</string>
-    <string name="before_prayer_notification">Before Prayer Notification</string>
+    <string name="pre_alert_mins">Pre-Alert (Mins)</string>
     <string name="language">Language</string>
     <string name="theme">Theme</string>
     <string name="brown">Brown</string>
