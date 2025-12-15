@@ -2,6 +2,10 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory android:title="@string/settings">
+        <Preference
+            android:key="lookupGPS"
+            android:title="@string/populate_data"
+            android:layout="@layout/button_preference_layout" />
         <EditTextPreference
             android:key="latitude"
             android:title="@string/latitude"
@@ -12,24 +16,6 @@
             android:title="@string/longitude"
             android:inputType="numberDecimal|numberSigned"
             android:defaultValue="-79.417" />
-        <Preference
-            android:key="lookupGPS"
-            android:title="@string/lookup_gps" />
-        <ListPreference
-            android:key="calculationMethodsIndex"
-            android:title="@string/calculation"
-            android:summary="%s"
-            android:entries="@array/calculation_methods"
-            android:entryValues="@array/calculation_methods_values" />
-        <EditTextPreference
-            android:key="beforePrayerNotification"
-            android:title="@string/before_prayer_notification"
-            android:summary="@string/minutes_0_to_disable"
-            android:inputType="number"
-            android:defaultValue="0" />
-    </PreferenceCategory>
-
-    <PreferenceCategory android:title="@string/advanced">
         <EditTextPreference
             android:key="altitude"
             android:title="@string/altitude"
@@ -40,16 +26,30 @@
             android:title="@string/pressure"
             android:inputType="numberDecimal"
             android:defaultValue="1010" />
+        <ListPreference
+            android:key="calculationMethodsIndex"
+            android:title="@string/calculation"
+            android:summary="%s"
+            android:entries="@array/calculation_methods"
+            android:entryValues="@array/calculation_methods_values" />
+        <EditTextPreference
+            android:key="beforePrayerNotification"
+            android:title="@string/pre_alert_mins"
+            android:summary="@string/minutes_0_to_disable"
+            android:inputType="number"
+            android:defaultValue="15" />
     </PreferenceCategory>
 
     <Preference
         android:key="information"
         android:title="@string/information"
-        android:summary="@string/information_text" />
+        android:summary="@string/information_text"
+        android:layout="@layout/custom_preference_layout" />
 
     <Preference
         android:key="disclaimer"
         android:title="@string/disclaimer"
-        android:summary="@string/disclaimer_text" />
+        android:summary="@string/disclaimer_text"
+        android:layout="@layout/custom_preference_layout" />
 
 </PreferenceScreen>
