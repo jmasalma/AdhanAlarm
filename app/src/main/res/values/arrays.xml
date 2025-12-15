@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <array name="calculation_methods">
-        <item>@string/egypt_survey</item>
-        <item>@string/karachi_shaf</item>
-        <item>@string/karachi_hanaf</item>
+        <item>@string/jafari</item>
         <item>@string/north_america</item>
         <item>@string/muslim_league</item>
         <item>@string/umm_alqurra</item>
-        <item>@string/fixed_ishaa</item>
+        <item>@string/egypt_survey</item>
+        <item>@string/karachi_hanaf</item>
+        <item>@string/dubai</item>
     </array>
     <string-array name="calculation_methods_values">
         <item>0</item>
@@ -38,27 +38,19 @@
         <item>2</item>
         <item>3</item>
     </string-array>
-    <array name="notification_methods">
+    <string-array name="before_prayer_notification_entries">
         <item>@string/none</item>
-        <item>@string/sdefault</item>
-        <item>@string/beep</item>
-        <item>@string/recite</item>
-    </array>
-    <string-array name="notification_methods_values">
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
+        <item>10</item>
+        <item>15</item>
+        <item>20</item>
+        <item>@string/custom</item>
     </string-array>
-    <array name="notification_methods_sunrise">
-        <item>@string/none</item>
-        <item>@string/sdefault</item>
-        <item>@string/beep</item>
-    </array>
-    <string-array name="notification_methods_sunrise_values">
+    <string-array name="before_prayer_notification_values">
         <item>0</item>
-        <item>1</item>
-        <item>2</item>
+        <item>10</item>
+        <item>15</item>
+        <item>20</item>
+        <item>-1</item>
     </string-array>
     <array name="hijri_months">
         <item>@string/month0</item>
@@ -73,17 +65,5 @@
         <item>@string/month9</item>
         <item>@string/month10</item>
         <item>@string/month11</item>
-    </array>
-    <array name="languages">
-        <item>@string/sdefault</item>
-        <item>العربية</item>
-        <item>Deutsch</item>
-        <item>English</item>
-        <item>Español</item>
-        <item>Français</item>
-        <item>Indonesia</item>
-        <item>Italiano</item>
-        <item>Русский</item>
-        <item>Türkçe</item>
     </array>
 </resources>

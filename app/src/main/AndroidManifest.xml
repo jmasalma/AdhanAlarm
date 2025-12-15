@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <supports-screens />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.ACCESS_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"
+        tools:ignore="CoarseFineLocation" />
     <uses-permission android:name="android.permission.ACCESS_GPS" />
-    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <application
         android:name=".App"
         android:allowBackup="false"
@@ -28,55 +31,48 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <intent-filter android:label="@string/app_name">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="http"
-                    android:host="spiritofislam.com"
-                    android:pathPrefix="/adhanalarm" />
-                <data android:scheme="https"
-                    android:host="spiritofislam.com"
-                    android:pathPrefix="/adhanalarm" />
-                <data android:scheme="http"
-                    android:host="www.spiritofislam.com"
-                    android:pathPrefix="/adhanalarm" />
-                <data android:scheme="https"
-                    android:host="www.spiritofislam.com"
-                    android:pathPrefix="/adhanalarm" />
-            </intent-filter>
         </activity>
         <activity android:name=".SettingsActivity"
             android:launchMode="singleTop" />
-        <receiver android:name=".widget.TimetableWidgetProvider" android:exported="false" android:label="@string/adhan_timetable">
+        <receiver
+            android:name=".widget.NextPrayerWidgetProvider"
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
-            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_timetable" />
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info" />
         </receiver>
-        <receiver android:name=".widget.NextNotificationWidgetProvider" android:exported="false" android:label="@string/adhan_next_time">
+        <receiver
+            android:name=".widget.AllDayPrayersWidgetProvider"
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
-            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_next_notification" />
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_all_day" />
         </receiver>
-        <receiver android:name=".receiver.StartNotificationReceiver" android:exported="false">
+        <receiver
+            android:name=".PrayerTimeReceiver"
+            android:exported="false">
             <intent-filter>
-                <action android:name="islam.adhanalarm.action.NOTIFY_PRAYER_TIME" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="islam.adhanalarm.action.UPDATE_PRAYER_TIME" />
+                <action android:name="islam.adhanalarm.ACTION_UPDATE_PRAYER_TIMES" />
+                <action android:name="islam.adhanalarm.ACTION_UPDATE_WIDGET" />
             </intent-filter>
         </receiver>
-        <receiver android:name=".receiver.HandleNotificationReceiver" android:exported="false">
+        <receiver android:name=".BootReceiver"
+            android:exported="false">
             <intent-filter>
-                <action android:name="islam.adhanalarm.action.NOTIFICATION_CLICKED" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
+        </receiver>
+        <receiver android:name=".TimeChangedReceiver"
+            android:exported="false">
             <intent-filter>
-                <action android:name="islam.adhanalarm.action.NOTIFICATION_DELETED" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="islam.adhanalarm.action.NOTIFICATION_STOPPED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
             </intent-filter>
         </receiver>
     </application>

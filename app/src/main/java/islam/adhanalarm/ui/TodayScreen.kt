@@ -16,14 +16,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.aminography.primecalendar.hijri.HijriCalendar
 import islam.adhanalarm.CONSTANT
 import islam.adhanalarm.MainViewModel
 import islam.adhanalarm.R
 import islam.adhanalarm.handler.ScheduleData
 import islam.adhanalarm.handler.ScheduleHandler
+import java.util.Locale
+import java.util.TimeZone
 
+/**
+ * Composable screen that displays the prayer times for today.
+ *
+ * @param viewModel The view model for the main screen.
+ */
 @Composable
 fun TodayScreen(viewModel: MainViewModel) {
     val scheduleData by viewModel.scheduleData.observeAsState()
@@ -32,6 +41,11 @@ fun TodayScreen(viewModel: MainViewModel) {
     }
 }
 
+/**
+ * Composable that displays a list of prayer times.
+ *
+ * @param scheduleData The prayer time schedule.
+ */
 @Composable
 fun PrayerTimeList(scheduleData: ScheduleData) {
     val prayerNames = listOf(
@@ -45,6 +59,17 @@ fun PrayerTimeList(scheduleData: ScheduleData) {
     )
 
     LazyColumn {
+        item {
+            val hijriCalendar = HijriCalendar(TimeZone.getDefault(), Locale.ENGLISH)
+            Text(
+                text = hijriCalendar.longDateString,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                fontFamily = FontFamily.Monospace,
+                textAlign = TextAlign.Center
+            )
+        }
         itemsIndexed(prayerNames) { index, prayerNameResId ->
             PrayerTimeRow(
                 prayerName = stringResource(id = prayerNameResId),
@@ -80,17 +105,9 @@ fun PrayerTimeRow(prayerName: String, prayerTime: String, isNextPrayer: Boolean)
 fun DefaultPreview() {
     // This is a dummy ScheduleData for preview purposes
     val dummyScheduleData = ScheduleData(
-
-        // schedule = Array(7) { java.util.GregorianCalendar() },
-        // extremes = BooleanArray(7) { false },
-        // hijriDate = fi.joensuu.joyds1.calendar.IslamicCalendar(),
-        // nextTimeIndex = CONSTANT.DHUHR
-
         Array(7) { java.util.GregorianCalendar() },
         BooleanArray(7) { false },
-        fi.joensuu.joyds1.calendar.IslamicCalendar(),
-        CONSTANT.DHUHR
-
+        CONSTANT.DHUHR.toShort()
     )
     PrayerTimeList(scheduleData = dummyScheduleData)
 }

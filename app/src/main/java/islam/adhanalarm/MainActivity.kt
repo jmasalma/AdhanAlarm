@@ -1,10 +1,14 @@
 package islam.adhanalarm
 
 import android.Manifest
+import android.app.AlarmManager
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.text.Html
 import android.view.Menu
 import android.view.MenuItem
@@ -44,9 +48,13 @@ class MainActivity : AppCompatActivity() {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
                 viewModel.updateLocation()
+                val intent = Intent(this, PrayerTimeReceiver::class.java)
+                intent.action = CONSTANT.ACTION_UPDATE_PRAYER_TIMES
+                sendBroadcast(intent)
             } else {
                 viewModel.loadLocationFromSettings()
             }
+            requestNotificationPermission()
         }
 
     private val requestNotificationPermissionLauncher =
@@ -67,7 +75,18 @@ class MainActivity : AppCompatActivity() {
         supportActionBar?.title = Html.fromHtml("<font face='monospace'>" + supportActionBar?.title + "</font>", Html.FROM_HTML_MODE_LEGACY)
 
         requestLocationPermission()
-        requestNotificationPermission()
+        requestExactAlarmPermission()
+    }
+
+    private fun requestExactAlarmPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            if (!alarmManager.canScheduleExactAlarms()) {
+                val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                intent.data = Uri.fromParts("package", packageName, null)
+                startActivity(intent)
+            }
+        }
     }
 
     private fun requestLocationPermission() {

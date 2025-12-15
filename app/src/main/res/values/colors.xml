@@ -6,4 +6,8 @@
     <color name="rowDivider">#DFDFDF</color>
     <color name="selectedRow">#0a000000</color>
     <color name="navigationItemUnselected">#BDBDBD</color>
+    <color name="widget_text_color">#FFFFFF</color>
+    <color name="widget_background_transparent">#00000000</color>
+    <color name="widget_background_solid">#80000000</color>
+    <color name="widget_highlight_color">#40FFFFFF</color>
 </resources>
