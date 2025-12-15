@@ -2,9 +2,8 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory android:title="@string/settings">
-        <Preference
+        <islam.adhanalarm.ButtonPreference
             android:key="lookupGPS"
-            android:title="@string/populate_data"
             android:layout="@layout/button_preference_layout" />
         <EditTextPreference
             android:key="latitude"
